@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import MobileNav from "@/components/layout/MobileNav";
 import { TournamentStatus } from "@/prisma/generated/prisma/enums";
 
 interface StatusPill {
@@ -38,22 +39,30 @@ export default async function Header() {
     <header
       className="bg-surface border-b border-surface/50 backdrop-blur-sm sticky top-0 left-0 right-0 z-50 transition-colors"
     >
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold text-primary">FIFA FRIENDS CUP</span>
-          <span className="text-base text-muted uppercase tracking-wider">Torneo EA FC</span>
-        </div>
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 py-2.5 sm:py-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <span className="truncate text-lg font-bold text-primary min-[400px]:text-xl">
+              FIFA FRIENDS CUP
+            </span>
+            <span className="hidden text-xs uppercase tracking-wider text-muted sm:inline sm:text-sm">
+              Torneo EA FC
+            </span>
+          </div>
 
-        {pill && (
-          <span
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${pill.tone}`}
-          >
+          <MobileNav />
+
+          {pill && (
             <span
-              className={`h-1.5 w-1.5 rounded-full ${pill.dot} ${pill.pulse ? "animate-pulse" : ""}`}
-            />
-            {pill.label}
-          </span>
-        )}
+              className={`order-last inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider md:order-none md:w-auto ${pill.tone}`}
+            >
+              <span
+                className={`h-1.5 w-1.5 shrink-0 rounded-full ${pill.dot} ${pill.pulse ? "animate-pulse" : ""}`}
+              />
+              {pill.label}
+            </span>
+          )}
+        </div>
       </div>
     </header>
   );

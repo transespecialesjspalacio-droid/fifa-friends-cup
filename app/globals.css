@@ -42,6 +42,12 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+/* La página completa nunca debe generar scroll horizontal */
+html,
+body {
+  overflow-x: hidden;
+}
+
 /* CSS transitions for interactive elements */
 .transition-base {
   transition-property: color, background-color, border-color, opacity, transform;

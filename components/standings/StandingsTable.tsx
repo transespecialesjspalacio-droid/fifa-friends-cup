@@ -19,7 +19,7 @@ export function StandingsTable({ standings }: { standings: GroupStandings[] }) {
             Grupo {group.groupName}
           </h3>
           <div className="overflow-x-auto rounded-xl border border-surface/50 bg-surface">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b border-surface/50 text-[11px] uppercase tracking-wider text-muted">
                   {HEADERS.map((header) => (

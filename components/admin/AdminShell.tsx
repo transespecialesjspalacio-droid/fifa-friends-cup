@@ -33,9 +33,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-surface/50 bg-surface/90 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="text-lg font-bold text-primary">FIFA FRIENDS CUP</span>
-            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-primary">
+<Link href="/" className="flex min-w-0 items-center gap-3">
+            <span className="truncate text-lg font-bold text-primary">FIFA FRIENDS CUP</span>
+            <span className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-primary">
               Admin
             </span>
           </Link>
@@ -69,14 +69,25 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </form>
           </nav>
 
-          <button
+<button
             type="button"
-            className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-secondary hover:text-foreground md:hidden"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground md:hidden"
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
           >
-            {menuOpen ? "x" : "="}
+            {menuOpen ? (
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <line x1="18" x2="6" y1="6" y2="18" />
+                <line x1="6" x2="18" y1="6" y2="18" />
+              </svg>
+            ) : (
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <line x1="4" x2="20" y1="6" y2="6" />
+                <line x1="4" x2="20" y1="12" y2="12" />
+                <line x1="4" x2="20" y1="18" y2="18" />
+              </svg>
+            )}
           </button>
         </div>
 

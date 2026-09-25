@@ -54,15 +54,15 @@ export default function WelcomeHero({
       </div>
 
       <p className="text-[11px] uppercase tracking-[0.4em] text-muted">Bienvenido a</p>
-      <h1 className="mt-2 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+      <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-5xl">
         FIFA <span className="text-primary">FRIENDS</span> CUP
       </h1>
-      <p className="mt-2 text-xs uppercase tracking-[0.5em] text-muted sm:text-sm">
+      <p className="mt-2 text-xs uppercase tracking-[0.4em] text-muted sm:text-sm sm:tracking-[0.5em]">
         Torneo EA FC
       </p>
       <p className="mt-4 text-sm text-muted/70">La copa está por comenzar</p>
 
-      <div className="mt-7 w-full max-w-lg rounded-2xl border border-surface/50 bg-surface/80 px-6 py-6 shadow-[0_0_50px_-18px_rgba(0,229,255,0.35)] backdrop-blur-sm">
+      <div className="mt-7 w-full max-w-lg rounded-2xl border border-surface/50 bg-surface/80 px-4 py-6 sm:px-6 shadow-[0_0_50px_-18px_rgba(0,229,255,0.35)] backdrop-blur-sm">
         <div className="text-4xl">🏆</div>
         <h2 className="mt-2 text-lg font-bold tracking-wide text-foreground">
           FIFA FRIENDS CUP

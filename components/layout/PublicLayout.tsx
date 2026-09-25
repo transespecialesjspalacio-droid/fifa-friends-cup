@@ -3,13 +3,13 @@ import Sidebar from "@/components/layout/Sidebar";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <Header />
 
-      <main className="ml-64 min-h-screen flex flex-col overflow-x-hidden">
+      <main className="flex min-h-screen flex-col overflow-x-hidden md:ml-64">
         <Sidebar />
 
-        <div className="flex-1 w-full px-4 py-6 overflow-y-auto">{children}</div>
+        <div className="w-full min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">{children}</div>
       </main>
     </div>
   );

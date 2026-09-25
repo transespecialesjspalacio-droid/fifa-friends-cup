@@ -33,7 +33,7 @@ export interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-surface/50 bg-surface/30 p-10 text-center ${className}`}
+      className={`flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-surface/50 bg-surface/30 p-8 text-center sm:p-10 ${className}`}
     >
       {icon && <span aria-hidden="true" className="text-3xl text-muted/60">{icon}</span>}
       <div>

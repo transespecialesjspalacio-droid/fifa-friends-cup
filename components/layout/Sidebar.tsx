@@ -2,39 +2,21 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-
-const ITEMS = [
-  { label: "Inicio", href: "/" },
-  { label: "Torneo", href: "/torneo" },
-  { label: "Fase Final", href: "/fase-final" },
-  { label: "Resultados", href: "/torneo?tab=resultados" },
-] as const;
-
-function isActive(pathname: string, search: URLSearchParams, href: string): boolean {
-  const [path, query = ""] = href.split("?");
-  if (path === "/") return pathname === "/";
-  if (pathname !== path && !pathname.startsWith(`${path}/`)) return false;
-  const required = new URLSearchParams(query);
-  for (const [key, value] of required) {
-    if (search.get(key) !== value) return false;
-  }
-  if (required.size === 0 && search.get("tab") === "resultados") return false;
-  return true;
-}
+import { NAV_ITEMS, isActive } from "@/components/layout/nav";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-64 bg-surface-secondary border-r border-surface/50 flex-shrink-0 p-4 pt-6 space-y-2 transition-all duration-200">
-      <div className="flex h-12 items-center justify-between mb-8">
+    <nav className="fixed left-0 top-0 hidden h-full w-64 flex-col bg-surface-secondary border-r border-surface/50 p-4 pt-6 transition-all duration-200 md:flex">
+      <div className="mb-8 flex h-12 items-center justify-between">
         <span className="text-xs uppercase tracking-wider text-muted">FIFA FRIENDS CUP</span>
         <span className="text-xs font-medium text-primary">2026</span>
       </div>
 
       <nav aria-label="Navegación principal" className="space-y-1">
-        {ITEMS.map((item) => (
+        {NAV_ITEMS.map((item) => (
           <Link
             key={item.href}
             href={item.href}

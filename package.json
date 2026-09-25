@@ -1,0 +1,40 @@
+{
+  "name": "fifa-friends-cup",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test:draw": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/draw-normalization.test.ts",
+    "test:standings": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/standings.test.ts",
+    "test:auth": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/auth.test.ts",
+    "test:penalties": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/penalties.test.ts",
+    "test:reset": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/reset.test.ts",
+    "test:next-match": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/next-match.test.ts",
+    "test:welcome": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/welcome.test.ts",
+    "test:result-nav": "node --experimental-strip-types --import ./tests/alias-hooks.mjs --test tests/result-navigation.test.ts",
+    "postinstall": "prisma skills sync || exit 0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "dotenv": "^18.0.3",
+    "next": "16.3.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@prisma/client": "^7.10.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "prisma": "^7.10.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

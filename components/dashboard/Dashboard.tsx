@@ -88,7 +88,10 @@ function CompactStandings({ standings }: { standings: GroupStandings[] }) {
                 >
                   {row.position}
                 </span>
-                <span className="flex-1 truncate">{row.label}</span>
+                <span className="flex-1 truncate">
+                  {row.label}
+                  {row.teamName ? ` (${row.teamName})` : ""}
+                </span>
                 <span
                   className={`shrink-0 tabular-nums ${row.dg > 0 ? "text-success" : row.dg < 0 ? "text-error" : "text-muted"}`}
                 >

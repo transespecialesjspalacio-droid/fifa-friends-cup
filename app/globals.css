@@ -155,16 +155,19 @@ body {
 .gold-metallic-text {
   background: linear-gradient(
     180deg,
-    #fff7d6 0%,
-    #ffd23f 35%,
-    #ffb300 55%,
-    #8a6500 78%,
+    #fff9e0 0%,
+    #ffee8a 18%,
+    #ffd23f 40%,
+    #e8a90c 62%,
+    #8a6500 80%,
     #ffd76a 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 2px 0 rgba(74, 51, 0, 0.55)) drop-shadow(0 0 18px rgba(255, 210, 63, 0.35));
+  filter: drop-shadow(0 -1px 0 rgba(255, 249, 224, 0.35))
+    drop-shadow(0 2px 0 rgba(74, 51, 0, 0.6))
+    drop-shadow(0 0 20px rgba(255, 200, 60, 0.45));
   animation: champion-shimmer 5s linear infinite;
 }

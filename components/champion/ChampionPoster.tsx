@@ -46,20 +46,146 @@ const SPARKLES: { left: string; top: string; size: number; delay: number }[] = [
   { left: "94%", top: "64%", size: 2, delay: 1.1 },
 ];
 
-function Trophy() {
+function ChampionTrophy() {
   return (
-    <div aria-hidden="true" className="animate-champion-glow relative mx-auto h-[150px] w-[120px] shrink-0">
-      <div className="absolute inset-2 rounded-full bg-[#FFD700]/20 blur-2xl" />
-      <div className="absolute left-1/2 top-0 h-6 w-6 -translate-x-1/2 bg-gradient-to-b from-[#FFF3B0] to-[#E6B400] [clip-path:polygon(50%_0%,61%_35%,98%_35%,68%_57%,79%_91%,50%_70%,21%_91%,32%_57%,2%_35%,39%_35%)]" />
-      <div className="absolute left-[26px] top-[26px] h-10 w-4 rounded-l-full border-[5px] border-[#E6B400] border-r-0" />
-      <div className="absolute right-[26px] top-[26px] h-10 w-4 rounded-r-full border-[5px] border-[#E6B400] border-l-0" />
-      <div className="absolute left-1/2 top-4 h-12 w-20 -translate-x-1/2 rounded-[40px_40px_12px_12px] bg-gradient-to-b from-[#FFF3B0] to-[#C98A00]" />
-      <div className="absolute left-1/2 top-6 h-1.5 w-7 -translate-x-1/2 rounded-full bg-white/70 blur-[1px]" />
-      <div className="absolute left-1/2 top-[60px] h-[5px] w-11 -translate-x-1/2 rounded-full bg-[#E6B400]" />
-      <div className="absolute left-1/2 top-[63px] h-6 w-4 -translate-x-1/2 rounded-[2px] bg-gradient-to-b from-[#E6B400] to-[#B8860B]" />
-      <div className="absolute left-1/2 top-[88px] h-3 w-6 -translate-x-1/2 rounded-full bg-[#D9A400]" />
-      <div className="absolute left-1/2 top-[94px] h-5 w-16 -translate-x-1/2 rounded-[8px] bg-gradient-to-b from-[#FFD700] to-[#A87800]" />
-      <div className="absolute left-1/2 top-[114px] h-4 w-24 -translate-x-1/2 rounded-[6px] bg-gradient-to-b from-[#E6B400] to-[#8A6500]" />
+    <div aria-hidden="true" className="animate-champion-glow relative mx-auto w-40 shrink-0 sm:w-60">
+      <svg
+        viewBox="0 0 260 300"
+        className="relative z-10 h-auto w-full"
+        role="img"
+        aria-label="Trofeo de campeones"
+      >
+        <defs>
+          <linearGradient id="ct-gold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFF3B0" />
+            <stop offset="12%" stopColor="#FFE063" />
+            <stop offset="45%" stopColor="#F5C33A" />
+            <stop offset="75%" stopColor="#C9972A" />
+            <stop offset="100%" stopColor="#8A6500" />
+          </linearGradient>
+          <linearGradient id="ct-goldLight" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFFDEB" />
+            <stop offset="50%" stopColor="#FFE9A8" />
+            <stop offset="100%" stopColor="#D9A63C" />
+          </linearGradient>
+          <linearGradient id="ct-goldDeep" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#E8B93C" />
+            <stop offset="60%" stopColor="#B8860B" />
+            <stop offset="100%" stopColor="#6E5010" />
+          </linearGradient>
+          <linearGradient id="ct-inner" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6B4A09" />
+            <stop offset="100%" stopColor="#33250A" />
+          </linearGradient>
+          <linearGradient id="ct-baseDark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#293146" />
+            <stop offset="45%" stopColor="#121722" />
+            <stop offset="100%" stopColor="#07090E" />
+          </linearGradient>
+          <radialGradient id="ct-glow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%" stopColor="#FFD25A" stopOpacity="0.55" />
+            <stop offset="60%" stopColor="#FFB84D" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#FFB84D" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        <ellipse cx="130" cy="120" rx="104" ry="92" fill="url(#ct-glow)" />
+
+        <path
+          d="M 62 84 C 20 92, 22 152, 94 160"
+          fill="none"
+          stroke="#6E5010"
+          strokeWidth="15"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 62 84 C 20 92, 22 152, 94 160"
+          fill="none"
+          stroke="#E8B93C"
+          strokeWidth="11"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 62 84 C 20 92, 22 152, 94 160"
+          fill="none"
+          stroke="#FFE9A8"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          opacity="0.55"
+        />
+
+        <path
+          d="M 198 84 C 240 92, 238 152, 166 160"
+          fill="none"
+          stroke="#6E5010"
+          strokeWidth="15"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 198 84 C 240 92, 238 152, 166 160"
+          fill="none"
+          stroke="#E8B93C"
+          strokeWidth="11"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 198 84 C 240 92, 238 152, 166 160"
+          fill="none"
+          stroke="#FFE9A8"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          opacity="0.55"
+        />
+
+        <rect x="64" y="66" width="132" height="94" rx="10" fill="url(#ct-gold)" />
+        <path
+          d="M 74 72 C 74 116, 92 152, 104 154"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth="5"
+          strokeLinecap="round"
+          opacity="0.3"
+        />
+        <path
+          d="M 186 72 C 186 116, 168 152, 156 154"
+          fill="none"
+          stroke="#6E5010"
+          strokeWidth="4"
+          strokeLinecap="round"
+          opacity="0.35"
+        />
+        <ellipse
+          cx="152"
+          cy="84"
+          rx="9"
+          ry="4"
+          transform="rotate(-18 152 84)"
+          fill="#FFFFFF"
+          opacity="0.18"
+        />
+
+        <rect x="44" y="38" width="172" height="30" rx="13" fill="url(#ct-gold)" />
+        <rect x="48" y="42" width="104" height="5" rx="2.5" fill="#FFFFFF" opacity="0.6" />
+        <ellipse cx="130" cy="52" rx="64" ry="9" fill="url(#ct-inner)" />
+        <ellipse cx="130" cy="60" rx="64" ry="3" fill="#33250A" opacity="0.8" />
+
+        <path d="M 96 156 L 110 170 L 150 170 L 164 156 Z" fill="url(#ct-goldDeep)" />
+        <rect x="100" y="166" width="60" height="9" rx="4.5" fill="url(#ct-goldLight)" />
+
+        <path d="M 116 175 L 144 175 L 138 194 L 122 194 Z" fill="url(#ct-goldDeep)" />
+        <path d="M 130 175 L 128 194" stroke="#FFF3B0" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+        <rect x="106" y="192" width="48" height="10" rx="5" fill="url(#ct-gold)" />
+
+        <rect x="96" y="202" width="68" height="16" rx="8" fill="url(#ct-goldLight)" />
+        <rect x="84" y="218" width="92" height="18" rx="9" fill="url(#ct-gold)" />
+
+        <rect x="66" y="236" width="128" height="32" rx="14" fill="url(#ct-baseDark)" />
+        <rect x="72" y="238" width="116" height="5" rx="2.5" fill="url(#ct-goldLight)" />
+        <path d="M 130 248 L 136 254 L 130 260 L 124 254 Z" fill="url(#ct-goldLight)" />
+        <circle cx="86" cy="260" r="3" fill="#FFE9A8" opacity="0.8" />
+        <circle cx="174" cy="260" r="3" fill="#FFE9A8" opacity="0.8" />
+        <rect x="68" y="262" width="124" height="4" rx="2" fill="#FFD95B" opacity="0.35" />
+      </svg>
     </div>
   );
 }
@@ -99,12 +225,13 @@ export function ChampionPoster({
       >
         <div className="relative h-full w-full overflow-hidden rounded-[27px] bg-[#05070F]">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -left-14 -top-24 h-72 w-56 origin-top-left -rotate-[14deg] animate-champion-beam bg-gradient-to-b from-[#FFD700]/25 via-[#FFD700]/5 to-transparent [clip-path:polygon(30%_0%,70%_0%,100%_100%,0%_100%)]" />
+            <div className="absolute -left-14 -top-24 h-72 w-56 origin-top-left -rotate-[14deg] animate-champion-beam bg-gradient-to-b from-[#FFD700]/15 via-[#FFD700]/4 to-transparent [clip-path:polygon(30%_0%,70%_0%,100%_100%,0%_100%)]" />
             <div
-              className="absolute -right-14 -top-24 h-72 w-56 origin-top-right rotate-[14deg] animate-champion-beam bg-gradient-to-b from-[#00E5FF]/20 via-[#00E5FF]/5 to-transparent [clip-path:polygon(30%_0%,70%_0%,100%_100%,0%_100%)]"
+              className="absolute -right-14 -top-24 h-72 w-56 origin-top-right rotate-[14deg] animate-champion-beam bg-gradient-to-b from-[#00E5FF]/12 via-[#00E5FF]/4 to-transparent [clip-path:polygon(30%_0%,70%_0%,100%_100%,0%_100%)]"
               style={{ animationDelay: "0.7s" }}
             />
-            <div className="absolute -top-16 left-1/2 h-48 w-[130%] -translate-x-1/2 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(255,215,0,0.16),transparent_70%)]" />
+            <div className="absolute -top-16 left-1/2 h-48 w-[130%] -translate-x-1/2 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(255,215,0,0.14),transparent_70%)]" />
+            <div className="absolute left-1/2 top-[54%] h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,210,63,0.22),transparent_70%)]" />
             <div className="absolute left-1/2 top-4 flex -translate-x-1/2 gap-6">
               <span className="h-2 w-2 rounded-full bg-[#FFE9A8] shadow-[0_0_12px_2px_rgba(255,233,168,0.8)]" />
               <span className="h-2 w-2 rounded-full bg-[#FFE9A8] shadow-[0_0_12px_2px_rgba(255,233,168,0.8)]" />
@@ -151,7 +278,7 @@ export function ChampionPoster({
             />
           ))}
 
-          <div className="relative z-10 flex h-full w-full flex-col items-center justify-center px-6 py-8 text-center sm:px-10">
+          <div className="relative z-10 flex h-full w-full flex-col items-center justify-center px-6 py-5 text-center sm:px-10">
             <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#9BE8FF] sm:text-xs">
               FIFA FRIENDS CUP
             </p>
@@ -159,15 +286,17 @@ export function ChampionPoster({
               {edition}
             </p>
 
-            <div className="my-3 h-px w-44 bg-gradient-to-r from-transparent via-[#FFD700]/80 to-transparent" />
+            <div className="my-2 h-px w-44 bg-gradient-to-r from-transparent via-[#FFD700]/80 to-transparent" />
 
             <h2 className="gold-metallic-text text-4xl font-black italic uppercase leading-none tracking-[0.04em] sm:text-6xl">
               Campeones
             </h2>
 
-            <Trophy />
+            <div className="mt-2">
+              <ChampionTrophy />
+            </div>
 
-            <p className="mt-3 max-w-full px-2 text-xl font-extrabold leading-snug text-white sm:text-2xl">
+            <p className="mt-2 max-w-full px-2 text-xl font-extrabold leading-snug text-white sm:text-2xl">
               {pairName}
             </p>
 
@@ -181,13 +310,13 @@ export function ChampionPoster({
               </div>
             )}
 
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#FFD700]/60 bg-[#FFD700]/10 px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.45em] text-[#FFE9A8] sm:text-[11px]">
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#FFD700]/60 bg-[#FFD700]/10 px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.45em] text-[#FFE9A8] sm:text-[11px]">
               <span aria-hidden="true">★</span>
               Campeón
               <span aria-hidden="true">★</span>
             </div>
 
-            <p className="mt-4 text-[9px] uppercase tracking-[0.5em] text-white/35 sm:text-[10px]">
+            <p className="mt-3 text-[9px] uppercase tracking-[0.5em] text-white/35 sm:text-[10px]">
               FIFA FRIENDS CUP {edition} · Campeones
             </p>
           </div>

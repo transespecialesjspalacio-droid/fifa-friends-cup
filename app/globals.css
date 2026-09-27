@@ -83,3 +83,88 @@ body {
 .animate-entry-in {
   animation: entry-in 500ms ease-out;
 }
+
+/* Champion poster celebrations */
+@keyframes champion-beam {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes champion-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes champion-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rot, 0deg));
+  }
+  50% {
+    transform: translateY(-12px) rotate(calc(var(--rot, 0deg) + 10deg));
+  }
+}
+
+@keyframes champion-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 26px rgba(255, 215, 0, 0.6));
+  }
+}
+
+@keyframes champion-shimmer {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 200% 0%;
+  }
+}
+
+.animate-champion-beam {
+  animation: champion-beam 3s ease-in-out infinite;
+}
+
+.animate-champion-twinkle {
+  animation: champion-twinkle 2.4s ease-in-out infinite;
+}
+
+.animate-champion-float {
+  animation: champion-float 3s ease-in-out infinite;
+}
+
+.animate-champion-glow {
+  animation: champion-glow 3.4s ease-in-out infinite;
+}
+
+.gold-metallic-text {
+  background: linear-gradient(
+    180deg,
+    #fff7d6 0%,
+    #ffd23f 35%,
+    #ffb300 55%,
+    #8a6500 78%,
+    #ffd76a 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(74, 51, 0, 0.55)) drop-shadow(0 0 18px rgba(255, 210, 63, 0.35));
+  animation: champion-shimmer 5s linear infinite;
+}

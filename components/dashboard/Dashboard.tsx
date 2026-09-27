@@ -15,6 +15,7 @@ import { getAdminSummary } from "@/lib/services/summary";
 import { matchTitle, pairDisplayLabel, stageLabel } from "@/lib/services/stage";
 import { MatchStage, MatchStatus } from "@/prisma/generated/prisma/enums";
 import { ScoreRow } from "@/components/matches/ScoreRow";
+import { ChampionPoster } from "@/components/champion/ChampionPoster";
 
 function ResultRow({ match }: { match: MatchWithSlots }) {
   const left = match.home ? pairDisplayLabel(match.home) : "Por definir";
@@ -184,6 +185,13 @@ export default async function Dashboard() {
     >
       <PublicLayout>
         <div className="flex-1 w-full">
+          {podium.champion && (
+            <ChampionPoster
+              className="mb-5"
+              pairName={`${podium.champion.participant1.name} + ${podium.champion.participant2.name}`}
+              teamName={podium.champion.teamName}
+            />
+          )}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           <TournamentSummaryCard
             title="Participantes"

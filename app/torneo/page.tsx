@@ -4,9 +4,11 @@ import { MatchesList } from "@/components/matches/MatchesList";
 import { PairGrid } from "@/components/pairs/PairGrid";
 import { StandingsTable } from "@/components/standings/StandingsTable";
 import TorneoTabs, { type TorneoPanel } from "@/components/torneo/TorneoTabs";
+import { ChampionPoster } from "@/components/champion/ChampionPoster";
 import { listPairs, type PairWithRelations } from "@/lib/services/pairs";
 import { listMatches } from "@/lib/services/matches";
 import { getStandings } from "@/lib/services/standings";
+import { getPodiumInfo } from "@/lib/services/knockout";
 
 export const dynamic = "force-dynamic";
 
@@ -70,10 +72,11 @@ export default async function TorneoPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { tab } = await searchParams;
-  const [pairsResult, matchesResult, standingsResult] = await Promise.all([
+  const [pairsResult, matchesResult, standingsResult, podium] = await Promise.all([
     listPairs(),
     listMatches(),
     getStandings(),
+    getPodiumInfo(),
   ]);
 
   const panels: TorneoPanel[] = [
@@ -156,6 +159,13 @@ export default async function TorneoPage({
 
   return (
     <PublicLayout>
+      {podium.champion && (
+        <ChampionPoster
+          className="mb-6"
+          pairName={`${podium.champion.participant1.name} + ${podium.champion.participant2.name}`}
+          teamName={podium.champion.teamName}
+        />
+      )}
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-foreground">Torneo</h1>
         <p className="mt-1 text-sm text-muted">

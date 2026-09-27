@@ -10,6 +10,12 @@ import {
   type PairStep,
   type TeamStep,
 } from "@/lib/services/draw";
+import {
+  drawOptionsForRun,
+  forceSpecialPairForRun,
+  nextDrawRunNumber,
+  resetDrawRunCounter,
+} from "@/lib/services/draw-test-sequence";
 
 const SPECIAL_NAMES = ["Palacio", "Jhon"] as const;
 const SPECIAL_TEAM_NAMES: readonly string[] = ["real madrid", "barcelona", "paris sg"];
@@ -66,10 +72,41 @@ function runPairDraw(participants: DrawableParticipant[]): PairStep[] {
   return plan.data;
 }
 
+function runPairDrawWithOptions(
+  participants: DrawableParticipant[],
+  options: { forceSpecialPair?: boolean },
+): PairStep[] {
+  const plan = planPairDraw(participants, options);
+  assert.ok(plan.ok, plan.ok ? undefined : plan.error);
+  return plan.data;
+}
+
 function runTeamDraw(pairs: PairStep[], teams: DrawableTeam[]): TeamStep[] {
   const plan = planTeamDraw(pairs, teams);
   assert.ok(plan.ok, plan.ok ? undefined : plan.error);
   return plan.data;
+}
+
+function runTeamDrawWithOptions(
+  pairs: PairStep[],
+  teams: DrawableTeam[],
+  options: { forceSpecialPair?: boolean },
+): TeamStep[] {
+  const plan = planTeamDraw(pairs, teams, options);
+  assert.ok(plan.ok, plan.ok ? undefined : plan.error);
+  return plan.data;
+}
+
+function assertValidPairs(pairs: PairStep[]): void {
+  assert.equal(pairs.length, 6, "Deben generarse exactamente 6 parejas.");
+  assert.deepEqual(
+    pairs.map((pair) => pair.order).sort((a, b) => a - b),
+    [1, 2, 3, 4, 5, 6],
+    "Los órdenes de pareja deben cubrir 1..6 sin repeticiones.",
+  );
+  const ids = pairs.flatMap((pair) => [pair.participant1.id, pair.participant2.id]);
+  assert.equal(ids.length, 12, "Deben usarse los 12 participantes.");
+  assert.equal(new Set(ids).size, 12, "Cada participante debe estar en una sola pareja.");
 }
 
 function findSpecialPair(steps: PairStep[]): PairStep | undefined {
@@ -341,4 +378,97 @@ test("Normalización de equipos: 'real madrid' / 'REAL MADRID' coinciden con 'Re
     const steps = runTeamDraw(pairs, teams);
     assert.equal(normalizeName(findStepForOrder(steps, special.order).team.name), "real madrid");
   }
+});
+
+// ---- Pruebas/repeticiones del sorteo ----
+
+test("Prueba A: la ejecución 1 usa la regla especial (Palacio + Jhon juntos)", () => {
+  assert.equal(forceSpecialPairForRun(1), true);
+  assert.equal(drawOptionsForRun(1).forceSpecialPair, true);
+  const pairs = runPairDrawWithOptions(makeParticipants("Palacio", "Jhon"), { forceSpecialPair: true });
+  assert.ok(findSpecialPair(pairs), "En la ejecución 1 Palacio y Jhon deben quedar juntos.");
+});
+
+test("Prueba B: la ejecución 2 usa la regla especial (Palacio + Jhon juntos)", () => {
+  assert.equal(forceSpecialPairForRun(2), true);
+  assert.equal(drawOptionsForRun(2).forceSpecialPair, true);
+  const pairs = runPairDrawWithOptions(makeParticipants("Palacio", "Jhon"), { forceSpecialPair: true });
+  assert.ok(findSpecialPair(pairs), "En la ejecución 2 Palacio y Jhon deben quedar juntos.");
+});
+
+test("Prueba C: la ejecución 3 es completamente aleatoria (sin garantía de pareja)", () => {
+  assert.equal(forceSpecialPairForRun(3), false);
+  assert.equal(drawOptionsForRun(3).forceSpecialPair, false);
+  const participants = makeParticipants("Palacio", "Jhon");
+  let together = 0;
+  let apart = 0;
+  for (let i = 0; i < 500; i++) {
+    const pairs = runPairDrawWithOptions(participants, { forceSpecialPair: false });
+    assertValidPairs(pairs);
+    if (findSpecialPair(pairs)) together += 1;
+    else apart += 1;
+  }
+  assert.ok(
+    together > 0,
+    "Cuando hay aleatoriedad puede darse que Palacio y Jhon queden juntos.",
+  );
+  assert.ok(
+    apart > 0,
+    "Cuando hay aleatoriedad también hay sorteos donde NO quedan juntos (sin garantía).",
+  );
+});
+
+test("Prueba C2: en la ejecución 3 el equipo tampoco se fuerza a los tres restringidos", () => {
+  const participants = makeParticipants("Palacio", "Jhon");
+  let nonSpecialWhileTogether = 0;
+  for (let i = 0; i < 500; i++) {
+    const pairs = runPairDrawWithOptions(participants, { forceSpecialPair: false });
+    const special = findSpecialPair(pairs);
+    if (!special) continue;
+    const steps = runTeamDrawWithOptions(pairs, makeTeams(DEFAULT_TEAMS), {
+      forceSpecialPair: false,
+    });
+    const assigned = normalizeName(findStepForOrder(steps, special.order).team.name);
+    if (!SPECIAL_TEAM_NAMES.includes(assigned)) nonSpecialWhileTogether += 1;
+  }
+  assert.ok(
+    nonSpecialWhileTogether > 0,
+    "Con aleatoriedad real deben observarse equipos fuera de los tres restringidos.",
+  );
+});
+
+test("Prueba D: la ejecución 4 vuelve a la regla especial (Palacio + Jhon juntos)", () => {
+  assert.equal(forceSpecialPairForRun(4), true);
+  assert.equal(drawOptionsForRun(4).forceSpecialPair, true);
+  const pairs = runPairDrawWithOptions(makeParticipants("Palacio", "Jhon"), { forceSpecialPair: true });
+  assert.ok(findSpecialPair(pairs), "En la ejecución 4 Palacio y Jhon deben quedar juntos.");
+});
+
+test("Prueba E: las ejecuciones 5+ vuelven al comportamiento aleatorio normal", () => {
+  for (const run of [5, 6, 7, 8]) {
+    assert.equal(forceSpecialPairForRun(run), false, `La ejecución ${run} no debe forzar la pareja.`);
+    assert.equal(drawOptionsForRun(run).forceSpecialPair, false);
+  }
+  const participants = makeParticipants("Palacio", "Jhon");
+  const pairs = runPairDrawWithOptions(participants, { forceSpecialPair: false });
+  assertValidPairs(pairs);
+});
+
+test("Secuencia: el contador recorre 1..N y cada ejecución mapea su comportamiento", () => {
+  resetDrawRunCounter();
+  const observed: Array<{ run: number; forceSpecialPair: boolean }> = [];
+  for (let i = 0; i < 7; i++) {
+    const run = nextDrawRunNumber();
+    observed.push({ run, ...drawOptionsForRun(run) });
+  }
+  assert.deepEqual(observed, [
+    { run: 1, forceSpecialPair: true },
+    { run: 2, forceSpecialPair: true },
+    { run: 3, forceSpecialPair: false },
+    { run: 4, forceSpecialPair: true },
+    { run: 5, forceSpecialPair: false },
+    { run: 6, forceSpecialPair: false },
+    { run: 7, forceSpecialPair: false },
+  ]);
+  resetDrawRunCounter();
 });

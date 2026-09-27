@@ -81,6 +81,7 @@ export const TournamentScalarFieldEnum = {
   name: 'name',
   description: 'description',
   status: 'status',
+  drawRunCount: 'drawRunCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

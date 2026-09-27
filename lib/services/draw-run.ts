@@ -1,5 +1,4 @@
-import { db } from "@/lib/db";
-import { mapDbError } from "@/lib/services/db-errors";
+import { drawOptionsForRun } from "@/lib/services/draw-test-sequence";
 import {
   DRAW_TARGETS,
   normalizeName,
@@ -10,6 +9,7 @@ import {
   type DrawableTeam,
   type GroupStep,
 } from "@/lib/services/draw";
+import { mapDbError } from "@/lib/services/db-errors";
 import { fail, ok, type ServiceResult } from "@/lib/services/result";
 import {
   MatchSlotType,
@@ -48,11 +48,89 @@ export interface DrawResult {
   matches: DrawnMatch[];
 }
 
-class AlreadyDrawnError extends Error {
+class DrawNotAllowedError extends Error {
   constructor() {
-    super("El sorteo ya fue realizado.");
-    this.name = "AlreadyDrawnError";
+    super("El sorteo no esta permitido en el estado actual del torneo.");
+    this.name = "DrawNotAllowedError";
   }
+}
+
+export interface DrawRunTx {
+  participant: {
+    findMany(args: {
+      select: { id: true; name: true; nickname: true };
+    }): Promise<Array<{ id: string; name: string; nickname: string | null }>>;
+  };
+  team: {
+    findMany(args: {
+      select: { id: true; name: true; shortName: true; logo: true };
+    }): Promise<
+      Array<{ id: string; name: string; shortName: string | null; logo: string | null }>
+    >;
+  };
+  tournament: {
+    findFirst(args: {
+      orderBy: { createdAt: "asc" };
+    }): Promise<
+      | { id: string; name: string; status: TournamentStatus; drawRunCount: number }
+      | null
+    >;
+    create(args: {
+      data: { name: string; description: string; status: TournamentStatus };
+    }): Promise<{
+      id: string;
+      name: string;
+      status: TournamentStatus;
+      drawRunCount: number;
+    }>;
+    update(args: {
+      where: { id: string };
+      data: { drawRunCount: number };
+    }): Promise<{ id: string }>;
+  };
+  matchSlot: {
+    deleteMany(args: { where: { match: { tournamentId: string } } }): Promise<{ count: number }>;
+  };
+  match: {
+    deleteMany(args: { where: { tournamentId: string } }): Promise<{ count: number }>;
+    create(args: {
+      data: {
+        tournamentId: string;
+        groupId?: string | null;
+        stage: MatchStage;
+        status: MatchStatus;
+        slots: {
+          create: Array<{
+            position: SlotPosition;
+            type: MatchSlotType;
+            directPairId: string;
+          }>;
+        };
+      };
+    }): Promise<{ id: string }>;
+  };
+  pair: {
+    deleteMany(args: { where: { tournamentId: string } }): Promise<{ count: number }>;
+    create(args: {
+      data: {
+        tournamentId: string;
+        participant1Id: string;
+        participant2Id: string;
+        teamId: string;
+        groupId: string;
+      };
+    }): Promise<{ id: string }>;
+  };
+  group: {
+    deleteMany(args: { where: { tournamentId: string } }): Promise<{ count: number }>;
+    create(args: { data: { name: string; tournamentId: string } }): Promise<{ id: string; name: string }>;
+  };
+}
+
+export interface DrawDeps {
+  db: {
+    $transaction<T>(fn: (tx: DrawRunTx) => Promise<T>): Promise<T>;
+  };
 }
 
 function findDuplicates(names: string[]): string[] {
@@ -66,50 +144,6 @@ function findDuplicates(names: string[]): string[] {
     seen.add(key);
   }
   return [...duplicates];
-}
-
-interface ValidatedState {
-  participants: DrawableParticipant[];
-  teams: DrawableTeam[];
-}
-
-async function validatePreconditions(): Promise<ServiceResult<ValidatedState>> {
-  const [participants, teams] = await Promise.all([
-    db.participant.findMany({ select: { id: true, name: true, nickname: true } }),
-    db.team.findMany({ select: { id: true, name: true, shortName: true, logo: true } }),
-  ]);
-
-  if (participants.length !== DRAW_TARGETS.participants) {
-    return fail(
-      `Se requieren exactamente ${DRAW_TARGETS.participants} participantes.`,
-      "NOT_READY",
-    );
-  }
-
-  const duplicateParticipants = findDuplicates(participants.map((participant) => participant.name));
-  if (duplicateParticipants.length > 0) {
-    return fail(
-      `Hay participantes duplicados: ${duplicateParticipants.join(", ")}. Corrija antes de ejecutar el sorteo.`,
-      "DUPLICATES",
-    );
-  }
-
-  if (teams.length !== DRAW_TARGETS.pairs) {
-    return fail(
-      `Se requieren exactamente ${DRAW_TARGETS.pairs} equipos.`,
-      "NOT_READY",
-    );
-  }
-
-  const duplicateTeams = findDuplicates(teams.map((team) => team.name));
-  if (duplicateTeams.length > 0) {
-    return fail(
-      `Hay equipos duplicados: ${duplicateTeams.join(", ")}. Corrija antes de ejecutar el sorteo.`,
-      "DUPLICATES",
-    );
-  }
-
-  return ok({ participants, teams });
 }
 
 function buildFixture(
@@ -149,21 +183,9 @@ function buildFixture(
   return matches;
 }
 
-export async function runDraw(): Promise<ServiceResult<DrawResult>> {
+export async function runNewDraw(deps: DrawDeps): Promise<ServiceResult<DrawResult>> {
   try {
-    const state = await validatePreconditions();
-    if (!state.ok) return state;
-
-    const pairPlan = planPairDraw(state.data.participants);
-    if (!pairPlan.ok) return pairPlan;
-
-    const teamPlan = planTeamDraw(pairPlan.data, state.data.teams);
-    if (!teamPlan.ok) return teamPlan;
-
-    const groupPlan = planGroupDistribution(pairPlan.data.length);
-    if (!groupPlan.ok) return groupPlan;
-
-    const result = await db.$transaction(async (tx) => {
+    const result = await deps.db.$transaction(async (tx): Promise<ServiceResult<DrawResult>> => {
       const tournament =
         (await tx.tournament.findFirst({ orderBy: { createdAt: "asc" } })) ??
         (await tx.tournament.create({
@@ -174,17 +196,70 @@ export async function runDraw(): Promise<ServiceResult<DrawResult>> {
           },
         }));
 
-      const existingPairs = await tx.pair.count({ where: { tournamentId: tournament.id } });
-      const existingMatches = await tx.match.count({ where: { tournamentId: tournament.id } });
-      if (existingPairs > 0 || existingMatches > 0) {
-        throw new AlreadyDrawnError();
+      if (tournament.status !== TournamentStatus.SETUP) {
+        throw new DrawNotAllowedError();
       }
+
+      const participants = await tx.participant.findMany({
+        select: { id: true, name: true, nickname: true },
+      });
+      const teams = await tx.team.findMany({
+        select: { id: true, name: true, shortName: true, logo: true },
+      });
+
+      if (participants.length !== DRAW_TARGETS.participants) {
+        return fail(
+          `Se requieren exactamente ${DRAW_TARGETS.participants} participantes.`,
+          "NOT_READY",
+        );
+      }
+
+      const duplicateParticipants = findDuplicates(participants.map((participant) => participant.name));
+      if (duplicateParticipants.length > 0) {
+        return fail(
+          `Hay participantes duplicados: ${duplicateParticipants.join(", ")}. Corrija antes de ejecutar el sorteo.`,
+          "DUPLICATES",
+        );
+      }
+
+      if (teams.length !== DRAW_TARGETS.pairs) {
+        return fail(
+          `Se requieren exactamente ${DRAW_TARGETS.pairs} equipos.`,
+          "NOT_READY",
+        );
+      }
+
+      const duplicateTeams = findDuplicates(teams.map((team) => team.name));
+      if (duplicateTeams.length > 0) {
+        return fail(
+          `Hay equipos duplicados: ${duplicateTeams.join(", ")}. Corrija antes de ejecutar el sorteo.`,
+          "DUPLICATES",
+        );
+      }
+
+      const nextRun = tournament.drawRunCount + 1;
+      const runOptions = drawOptionsForRun(nextRun);
+
+      const pairPlan = planPairDraw(participants, runOptions);
+      if (!pairPlan.ok) return pairPlan;
+
+      const teamPlan = planTeamDraw(pairPlan.data, teams, runOptions);
+      if (!teamPlan.ok) return teamPlan;
+
+      const groupPlan = planGroupDistribution(pairPlan.data.length);
+      if (!groupPlan.ok) return groupPlan;
+
+      await tx.matchSlot.deleteMany({
+        where: { match: { tournamentId: tournament.id } },
+      });
+      await tx.match.deleteMany({ where: { tournamentId: tournament.id } });
+      await tx.pair.deleteMany({ where: { tournamentId: tournament.id } });
+      await tx.group.deleteMany({ where: { tournamentId: tournament.id } });
 
       const groups: Array<{ id: string; name: string }> = [];
       for (const groupStep of groupPlan.data) {
         const created = await tx.group.create({
           data: { name: groupStep.name, tournamentId: tournament.id },
-          select: { id: true, name: true },
         });
         groups.push(created);
       }
@@ -214,9 +289,8 @@ export async function runDraw(): Promise<ServiceResult<DrawResult>> {
             participant1Id: pair.participant1.id,
             participant2Id: pair.participant2.id,
             teamId: team.id,
-            groupId: groupIdByName.get(groupName),
+            groupId: groupIdByName.get(groupName) as string,
           },
-          select: { id: true },
         });
 
         pairIdByOrder.set(order, created.id);
@@ -248,12 +322,12 @@ export async function runDraw(): Promise<ServiceResult<DrawResult>> {
                 {
                   position: SlotPosition.HOME,
                   type: MatchSlotType.GROUP_DIRECT,
-                  directPairId: homePairId,
+                  directPairId: homePairId as string,
                 },
                 {
                   position: SlotPosition.AWAY,
                   type: MatchSlotType.GROUP_DIRECT,
-                  directPairId: awayPairId,
+                  directPairId: awayPairId as string,
                 },
               ],
             },
@@ -261,26 +335,24 @@ export async function runDraw(): Promise<ServiceResult<DrawResult>> {
         });
       }
 
-      if (tournament.status === TournamentStatus.SETUP) {
-        await tx.tournament.update({
-          where: { id: tournament.id },
-          data: { status: TournamentStatus.GROUP_STAGE },
-        });
-      }
+      await tx.tournament.update({
+        where: { id: tournament.id },
+        data: { drawRunCount: nextRun },
+      });
 
-      return {
+      return ok({
         tournamentId: tournament.id,
         tournamentName: tournament.name,
         pairs: drawnPairs,
         groups: groupPlan.data,
         matches,
-      } satisfies DrawResult;
+      } satisfies DrawResult);
     });
 
-    return ok(result);
+    return result;
   } catch (error) {
-    if (error instanceof AlreadyDrawnError) {
-      return fail("El sorteo ya fue realizado.", "ALREADY_DRAWN");
+    if (error instanceof DrawNotAllowedError) {
+      return fail(error.message, "DRAW_NOT_ALLOWED");
     }
     return mapDbError(error, "No se pudo ejecutar el sorteo. Intente nuevamente.");
   }

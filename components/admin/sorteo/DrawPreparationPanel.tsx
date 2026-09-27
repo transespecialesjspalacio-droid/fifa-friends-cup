@@ -1,19 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { executeDrawAction } from "@/lib/actions/draw";
 import type { DrawnGroup, DrawnMatch, DrawnPair, DrawResult } from "@/lib/services/draw-run";
 import type { PairWithRelations } from "@/lib/services/pairs";
 import type { MatchWithSlots } from "@/lib/services/matches";
+import { TournamentStatus } from "@/prisma/generated/prisma/enums";
 import { Badge } from "@/components/admin/ui";
-import { Button } from "@/components/ui/Button";
+import TournamentActionsPanel from "@/components/admin/actions/TournamentActionsPanel";
 import DrawResults from "@/components/admin/sorteo/DrawResults";
 
 interface DrawPreparationPanelProps {
   participantCount: number;
   teamCount: number;
   pairCount: number;
+  tournamentStatus: TournamentStatus | null;
+  drawRunCount: number;
   persistedPairs: PairWithRelations[];
   persistedMatches: MatchWithSlots[];
   initialError?: string;
@@ -96,16 +97,13 @@ function buildPersistedResult(
 export default function DrawPreparationPanel({
   participantCount,
   teamCount,
-  pairCount,
+  tournamentStatus,
+  drawRunCount,
   persistedPairs,
   persistedMatches,
   initialError,
 }: DrawPreparationPanelProps) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [freshResult, setFreshResult] = useState<DrawResult | null>(null);
-  const [alreadyNotice, setAlreadyNotice] = useState(false);
 
   const persistedResult = useMemo(
     () => buildPersistedResult(persistedPairs, persistedMatches),
@@ -124,34 +122,10 @@ export default function DrawPreparationPanel({
       label: `6 equipos registrados (hay ${teamCount})`,
     },
     {
-      done: pairCount === 0,
-      label: "Sin parejas previas (el sorteo las genera)",
+      done: tournamentStatus === TournamentStatus.SETUP,
+      label: "Torneo en estado SETUP (requerido para un nuevo sorteo)",
     },
   ];
-  const allReady = checks.every((check) => check.done);
-
-  async function handleExecute() {
-    if (loading) return;
-    setLoading(true);
-    setActionError(null);
-    setAlreadyNotice(false);
-    try {
-      const result = await executeDrawAction();
-      if (result.ok) {
-        setFreshResult(result.data);
-        router.refresh();
-      } else if (result.code === "ALREADY_DRAWN") {
-        setAlreadyNotice(true);
-        router.refresh();
-      } else {
-        setActionError(result.error);
-      }
-    } catch {
-      setActionError("Ocurrió un error inesperado. Intente nuevamente.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -161,56 +135,42 @@ export default function DrawPreparationPanel({
         </div>
       )}
 
-      {actionError && (
-        <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-2 text-sm text-error">
-          {actionError}
-        </div>
-      )}
-
-      {alreadyNotice && (
-        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-2 text-sm text-warning">
-          El sorteo ya fue realizado. A continuacion se muestran los resultados actuales.
-        </div>
-      )}
-
       {displayedResult ? (
         <div className="flex flex-col gap-6">
           {!freshResult && (
             <div className="flex items-center gap-2">
-              <Badge variant="success">Sorteo ya realizado</Badge>
+              <Badge variant="success">Sorteo realizado</Badge>
             </div>
           )}
           <DrawResults result={displayedResult} animated={freshResult !== null} />
         </div>
       ) : (
-        <>
-          <section className="rounded-2xl border border-surface/50 bg-surface p-6">
-            <h2 className="text-lg font-medium text-foreground">Requisitos previos</h2>
-            <p className="mt-1 text-sm text-muted">
-              Antes de ejecutar el sorteo se valida que el torneo esté listo. La
-              operación es atómica: parejas, equipos, grupos y fixture se guardan juntos.
-            </p>
-            <ul className="mt-4 flex flex-col gap-2">
-              {checks.map((check) => (
-                <li key={check.label} className="flex items-center gap-2 text-sm">
-                  <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
-                      check.done
-                        ? "border-success/50 bg-success/10 text-success"
-                        : "border-surface/50 bg-surface-secondary text-muted"
-                    }`}
-                  >
-                    {check.done ? "v" : ""}
-                  </span>
-                  <span className={check.done ? "text-foreground" : "text-muted"}>
-                    {check.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
+        <section className="rounded-2xl border border-surface/50 bg-surface p-6">
+          <h2 className="text-lg font-medium text-foreground">Requisitos previos</h2>
+          <p className="mt-1 text-sm text-muted">
+            Antes de ejecutar el sorteo se valida que el torneo esté listo. La
+            operación es atómica: parejas, equipos, grupos y fixture se guardan juntos.
+          </p>
+          <ul className="mt-4 flex flex-col gap-2">
+            {checks.map((check) => (
+              <li key={check.label} className="flex items-center gap-2 text-sm">
+                <span
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
+                    check.done
+                      ? "border-success/50 bg-success/10 text-success"
+                      : "border-surface/50 bg-surface-secondary text-muted"
+                  }`}
+                >
+                  {check.done ? "v" : ""}
+                </span>
+                <span className={check.done ? "text-foreground" : "text-muted"}>
+                  {check.label}
+                </span>
+              </li>
+            ))}
+          </ul>
 
-          <section className="grid gap-4 sm:grid-cols-2">
+          <section className="mt-6 grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-surface/50 bg-surface p-5">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
                 Fase 1: Parejas
@@ -244,26 +204,14 @@ export default function DrawPreparationPanel({
               </p>
             </div>
           </section>
-
-          <section className="rounded-2xl border border-surface/50 bg-surface p-6">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-medium text-foreground">Ejecutar sorteo</h2>
-              <Badge variant={allReady ? "success" : "warning"}>
-                {allReady ? "Listo para sortear" : "Faltan requisitos"}
-              </Badge>
-            </div>
-            <p className="mt-1 text-sm text-muted">
-              La operación es idempotente: si el sorteo ya se ejecutó, no se crean datos
-              duplicados.
-            </p>
-            <div className="mt-4 flex items-center gap-3">
-              <Button type="button" onClick={() => void handleExecute()} disabled={loading}>
-                {loading ? "Sorteando..." : "Ejecutar sorteo"}
-              </Button>
-            </div>
-          </section>
-        </>
+        </section>
       )}
+
+      <TournamentActionsPanel
+        tournamentStatus={tournamentStatus}
+        drawRunCount={drawRunCount}
+        onNewDrawComplete={setFreshResult}
+      />
     </div>
   );
 }

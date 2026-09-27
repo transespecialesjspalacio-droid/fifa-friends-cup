@@ -11,6 +11,10 @@ export const DRAW_TARGETS = {
 const SPECIAL_PAIR_NAMES = ["Palacio", "Jhon"] as const;
 const SPECIAL_TEAM_NAMES = ["Real Madrid", "Barcelona", "Paris SG"] as const;
 
+export interface PairDrawOptions {
+  forceSpecialPair?: boolean;
+}
+
 export interface DrawableParticipant {
   id: string;
   name: string;
@@ -69,6 +73,7 @@ function shuffle<T>(items: T[]): T[] {
 
 export function planPairDraw(
   participants: DrawableParticipant[],
+  options: PairDrawOptions = {},
 ): ServiceResult<PairStep[]> {
   if (participants.length !== DRAW_TARGETS.participants) {
     return fail(
@@ -77,13 +82,16 @@ export function planPairDraw(
     );
   }
 
+  const forceSpecialPair = options.forceSpecialPair ?? true;
   const firstName = SPECIAL_PAIR_NAMES[0];
   const secondName = SPECIAL_PAIR_NAMES[1];
   const first = participants.find((participant) => matchesName(participant, firstName));
   const second = participants.find((participant) => matchesName(participant, secondName));
 
   const specialPair: PairStep | null =
-    first && second ? { order: 0, participant1: first, participant2: second } : null;
+    forceSpecialPair && first && second
+      ? { order: 0, participant1: first, participant2: second }
+      : null;
 
   const lockedIds = new Set(
     specialPair ? [specialPair.participant1.id, specialPair.participant2.id] : [],
@@ -121,6 +129,7 @@ export function planPairDraw(
 export function planTeamDraw(
   pairs: PairStep[],
   teams: DrawableTeam[],
+  options: PairDrawOptions = {},
 ): ServiceResult<TeamStep[]> {
   if (pairs.length !== DRAW_TARGETS.pairs) {
     return fail(
@@ -132,6 +141,18 @@ export function planTeamDraw(
     return fail(
       `Se necesitan al menos ${DRAW_TARGETS.pairs} equipos registrados.`,
       "NOT_READY",
+    );
+  }
+
+  const forceSpecialPair = options.forceSpecialPair ?? true;
+  const shuffledTeams = shuffle(teams);
+  if (!forceSpecialPair) {
+    return ok(
+      pairs.map((pair, index) => ({
+        order: pair.order,
+        pair,
+        team: shuffledTeams[index],
+      })),
     );
   }
 
@@ -148,7 +169,6 @@ export function planTeamDraw(
     teams.find((team) => normalizeName(team.name) === normalizeName(name)),
   ).filter((team): team is DrawableTeam => team !== undefined);
 
-  const shuffledTeams = shuffle(teams);
   if (!specialPair || availableSpecialTeams.length === 0) {
     return ok(
       pairs.map((pair, index) => ({

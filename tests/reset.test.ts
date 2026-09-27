@@ -17,6 +17,7 @@ interface StoredTournament {
   id: string;
   name: string;
   status: string;
+  drawRunCount: number;
 }
 
 interface StoredParticipant {
@@ -145,7 +146,10 @@ function buildFakeTx(store: FakeStore, failOn: string | null): ResetTx {
       findFirst: async () => store.tournaments[0] ?? null,
       update: async (args) => {
         const tournament = store.tournaments.find((item) => item.id === args.where.id);
-        if (tournament) tournament.status = args.data.status;
+        if (tournament) {
+          tournament.status = args.data.status;
+          tournament.drawRunCount = args.data.drawRunCount;
+        }
         return { id: args.where.id };
       },
     },
@@ -177,6 +181,7 @@ function seedFullStore(): FakeStore {
     id: "t1",
     name: "FIFA FRIENDS CUP",
     status: TournamentStatus.GROUP_STAGE,
+    drawRunCount: 4,
   });
   for (let i = 0; i < 12; i += 1) {
     store.participants.push({ id: `p${i + 1}`, name: `Participante ${i + 1}` });
@@ -243,6 +248,8 @@ test("1. Reiniciar elimina parejas, grupos, partidos, slots y resultados", async
   assert.equal(store.matches.length, 0);
   assert.equal(store.pairs.length, 0);
   assert.equal(store.groups.length, 0);
+  assert.equal(store.tournaments[0].status, TournamentStatus.SETUP);
+  assert.equal(store.tournaments[0].drawRunCount, 0);
 });
 
 test("2. Los participantes permanecen registrados", async () => {
@@ -289,6 +296,7 @@ test("5. Un usuario no autenticado no puede ejecutar la acción", async () => {
   assert.equal(store.transactionsStarted, 0);
   assert.equal(store.matches.length, 3);
   assert.equal(store.tournaments[0].status, TournamentStatus.GROUP_STAGE);
+  assert.equal(store.tournaments[0].drawRunCount, 4);
 });
 
 test("6. Si una operación falla, la transacción hace rollback completo", async () => {
@@ -304,11 +312,17 @@ test("6. Si una operación falla, la transacción hace rollback completo", async
   assert.equal(store.participants.length, 12);
   assert.equal(store.teams.length, 6);
   assert.equal(store.tournaments[0].status, TournamentStatus.GROUP_STAGE);
+  assert.equal(store.tournaments[0].drawRunCount, 4);
 });
 
 test("7. Reiniciar un torneo ya limpio no falla", async () => {
   const store = new FakeStore();
-  store.tournaments.push({ id: "t1", name: "FIFA FRIENDS CUP", status: TournamentStatus.SETUP });
+  store.tournaments.push({
+    id: "t1",
+    name: "FIFA FRIENDS CUP",
+    status: TournamentStatus.SETUP,
+    drawRunCount: 0,
+  });
   store.participants.push({ id: "p1", name: "Participante 1" });
   store.teams.push({ id: "team1", name: "Equipo 1" });
 
@@ -321,11 +335,21 @@ test("7. Reiniciar un torneo ya limpio no falla", async () => {
   assert.equal(result.data.deletedPairs, 0);
   assert.equal(result.data.deletedGroups, 0);
   assert.equal(store.tournaments[0].status, TournamentStatus.SETUP);
+  assert.equal(store.tournaments[0].drawRunCount, 0);
   assert.equal(store.participants.length, 1);
   assert.equal(store.teams.length, 1);
 });
 
-test("8. Sin torneo creado la operación responde sin errores", async () => {
+test("8. H. Reiniciar deja el torneo con drawRunCount=0 y estado SETUP", async () => {
+  const store = seedFullStore();
+  const result = delegates(await resetTournament({ db: makeFakeDb(store), authorize: passthroughAuthorize }));
+
+  assert.equal(result.ok, true);
+  assert.equal(store.tournaments[0].status, TournamentStatus.SETUP);
+  assert.equal(store.tournaments[0].drawRunCount, 0);
+});
+
+test("9. Sin torneo creado la operación responde sin errores", async () => {
   const store = new FakeStore();
   const result = delegates(await resetTournament({ db: makeFakeDb(store), authorize: passthroughAuthorize }));
 

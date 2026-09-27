@@ -31,7 +31,7 @@ export default async function AdminHomePage() {
     },
     {
       done: pairCount === 0,
-      label: "Sin parejas previas (el sorteo las genera)",
+      label: pairCount === 0 ? "Sin sorteo previo" : `Sorteo actual (${pairCount} parejas)`,
     },
     {
       done: groupCount === 0,

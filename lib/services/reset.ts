@@ -30,7 +30,7 @@ export interface ResetTx {
     findFirst(args: { orderBy: { createdAt: "asc" } }): Promise<{ id: string } | null>;
     update(args: {
       where: { id: string };
-      data: { status: TournamentStatus };
+      data: { status: TournamentStatus; drawRunCount: number };
     }): Promise<{ id: string }>;
   };
 }
@@ -73,7 +73,7 @@ export async function resetTournament(deps: ResetDeps): Promise<ServiceResult<Re
 
       await tx.tournament.update({
         where: { id: tournament.id },
-        data: { status: TournamentStatus.SETUP },
+        data: { status: TournamentStatus.SETUP, drawRunCount: 0 },
       });
 
       return {

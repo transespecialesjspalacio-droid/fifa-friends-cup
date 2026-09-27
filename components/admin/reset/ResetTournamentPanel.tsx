@@ -45,8 +45,7 @@ export default function ResetTournamentPanel() {
         <div>
           <p className="text-sm font-medium text-foreground">Reiniciar torneo</p>
           <p className="mt-1 text-sm text-muted">
-            Deja la aplicación lista para comenzar un nuevo torneo desde cero: elimina
-            el sorteo y los partidos/resultados actuales sin borrar participantes ni equipos.
+            Elimina parejas, grupos, partidos y resultados. Mantiene participantes y equipos.
           </p>
         </div>
         <Button

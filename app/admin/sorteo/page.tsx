@@ -25,6 +25,8 @@ export default async function AdminDrawPage() {
         participantCount={summaryResult.ok ? summaryResult.data.participantCount : 0}
         teamCount={summaryResult.ok ? summaryResult.data.teamCount : 0}
         pairCount={summaryResult.ok ? summaryResult.data.pairCount : 0}
+        tournamentStatus={summaryResult.ok ? summaryResult.data.status : null}
+        drawRunCount={summaryResult.ok ? summaryResult.data.drawRunCount : 0}
         persistedPairs={pairsResult.ok ? pairsResult.data : []}
         persistedMatches={matchesResult.ok ? matchesResult.data : []}
         initialError={

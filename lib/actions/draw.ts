@@ -1,10 +1,26 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { assertAdminSession } from "@/lib/auth";
-import { runDraw, type DrawResult } from "@/lib/services/draw-run";
+import { db } from "@/lib/db";
+import { runNewDraw, type DrawDeps, type DrawResult } from "@/lib/services/draw-run";
 import type { ServiceResult } from "@/lib/services/result";
 
-export async function executeDrawAction(): Promise<ServiceResult<DrawResult>> {
+export async function runNewDrawAction(): Promise<ServiceResult<DrawResult>> {
   await assertAdminSession();
-  return runDraw();
+
+  const result = await runNewDraw({
+    db: db as unknown as DrawDeps["db"],
+  });
+
+  if (result.ok) {
+    revalidatePath("/admin");
+    revalidatePath("/admin/sorteo");
+    revalidatePath("/admin/resultados");
+    revalidatePath("/fase-final");
+    revalidatePath("/torneo");
+    revalidatePath("/");
+  }
+
+  return result;
 }

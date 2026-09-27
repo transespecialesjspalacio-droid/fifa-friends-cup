@@ -5,11 +5,11 @@ export const DRAW_TARGETS = {
   pairs: 6,
   groups: 2,
   pairsPerGroup: 3,
-  lockedPairSlots: [3, 4, 5],
+  specialPairSlots: [3, 4, 5],
 } as const;
 
-const LOCKED_PAIR_NAMES = ["Sebastian", "Jhon"];
-const LOCKED_TEAM_NAMES = ["Real Madrid"];
+const SPECIAL_PAIR_NAMES = ["Palacio", "Jhon"] as const;
+const SPECIAL_TEAM_NAMES = ["Real Madrid", "Barcelona", "Paris SG"] as const;
 
 export interface DrawableParticipant {
   id: string;
@@ -77,23 +77,21 @@ export function planPairDraw(
     );
   }
 
-  const firstName = LOCKED_PAIR_NAMES[0];
-  const secondName = LOCKED_PAIR_NAMES[1];
+  const firstName = SPECIAL_PAIR_NAMES[0];
+  const secondName = SPECIAL_PAIR_NAMES[1];
   const first = participants.find((participant) => matchesName(participant, firstName));
   const second = participants.find((participant) => matchesName(participant, secondName));
 
-  const lockedPair: PairStep | null =
-    first && second
-      ? { order: 0, participant1: first, participant2: second }
-      : null;
+  const specialPair: PairStep | null =
+    first && second ? { order: 0, participant1: first, participant2: second } : null;
 
   const lockedIds = new Set(
-    lockedPair ? [lockedPair.participant1.id, lockedPair.participant2.id] : [],
+    specialPair ? [specialPair.participant1.id, specialPair.participant2.id] : [],
   );
   const remaining = shuffle(participants.filter((p) => !lockedIds.has(p.id)));
 
   const unordered: PairStep[] = [];
-  if (lockedPair) unordered.push(lockedPair);
+  if (specialPair) unordered.push(specialPair);
   for (let i = 0; i < remaining.length; i += 2) {
     unordered.push({
       order: 0,
@@ -102,16 +100,16 @@ export function planPairDraw(
     });
   }
 
-  const others = shuffle(unordered.filter((step) => step !== lockedPair));
+  const others = shuffle(unordered.filter((step) => step !== specialPair));
 
   const ordered: PairStep[] = [];
-  if (lockedPair) {
+  if (specialPair) {
     const slot = randomInt(
-      DRAW_TARGETS.lockedPairSlots[0],
-      DRAW_TARGETS.lockedPairSlots[1],
+      DRAW_TARGETS.specialPairSlots[0],
+      DRAW_TARGETS.specialPairSlots[1],
     );
     for (let i = 1; i <= DRAW_TARGETS.pairs; i++) {
-      ordered.push(i === slot ? lockedPair : (others.shift() as PairStep));
+      ordered.push(i === slot ? specialPair : (others.shift() as PairStep));
     }
   } else {
     ordered.push(...others);
@@ -137,35 +135,37 @@ export function planTeamDraw(
     );
   }
 
-  const lockedTeam = teams.find(
-    (team) => normalizeName(team.name) === normalizeName(LOCKED_TEAM_NAMES[0]),
-  );
-  if (!lockedTeam) {
-    return fail(
-      "Equipo requerido no registrado: no se puede completar el sorteo de equipos.",
-      "TEAM_NOT_REGISTERED",
+  const specialPair =
+    pairs.find(
+      (pair) =>
+        (matchesName(pair.participant1, SPECIAL_PAIR_NAMES[0]) &&
+          matchesName(pair.participant2, SPECIAL_PAIR_NAMES[1])) ||
+        (matchesName(pair.participant1, SPECIAL_PAIR_NAMES[1]) &&
+          matchesName(pair.participant2, SPECIAL_PAIR_NAMES[0])),
+    ) ?? null;
+
+  const availableSpecialTeams = SPECIAL_TEAM_NAMES.map((name) =>
+    teams.find((team) => normalizeName(team.name) === normalizeName(name)),
+  ).filter((team): team is DrawableTeam => team !== undefined);
+
+  const shuffledTeams = shuffle(teams);
+  if (!specialPair || availableSpecialTeams.length === 0) {
+    return ok(
+      pairs.map((pair, index) => ({
+        order: pair.order,
+        pair,
+        team: shuffledTeams[index],
+      })),
     );
   }
 
-  const lockedPair =
-    pairs.find(
-      (pair) =>
-        (matchesName(pair.participant1, LOCKED_PAIR_NAMES[0]) &&
-          matchesName(pair.participant2, LOCKED_PAIR_NAMES[1])) ||
-        (matchesName(pair.participant1, LOCKED_PAIR_NAMES[1]) &&
-          matchesName(pair.participant2, LOCKED_PAIR_NAMES[0])),
-    ) ?? null;
-
-  let assignments: DrawableTeam[] = [];
-  if (lockedPair) {
-    assignments = new Array<DrawableTeam>(pairs.length);
-    assignments[pairs.findIndex((pair) => pair.order === lockedPair.order)] = lockedTeam;
-    const pool = shuffle(teams.filter((team) => team.id !== lockedTeam.id));
-    for (let i = 0; i < assignments.length; i++) {
-      if (!assignments[i]) assignments[i] = pool.pop() as DrawableTeam;
-    }
-  } else {
-    assignments = shuffle(teams);
+  const specialTeam =
+    availableSpecialTeams[randomInt(0, availableSpecialTeams.length - 1)];
+  const assignments = new Array<DrawableTeam>(pairs.length);
+  assignments[pairs.findIndex((pair) => pair.order === specialPair.order)] = specialTeam;
+  const pool = shuffle(teams.filter((team) => team.id !== specialTeam.id));
+  for (let i = 0; i < assignments.length; i++) {
+    if (!assignments[i]) assignments[i] = pool.pop() as DrawableTeam;
   }
 
   return ok(

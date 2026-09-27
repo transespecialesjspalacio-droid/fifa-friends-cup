@@ -109,14 +109,6 @@ async function validatePreconditions(): Promise<ServiceResult<ValidatedState>> {
     );
   }
 
-  const hasRealMadrid = teams.some((team) => normalizeName(team.name) === "real madrid");
-  if (!hasRealMadrid) {
-    return fail(
-      "Real Madrid debe estar registrado antes de ejecutar el sorteo.",
-      "TEAM_NOT_REGISTERED",
-    );
-  }
-
   return ok({ participants, teams });
 }
 
